@@ -1,0 +1,36 @@
+
+
+I would like to bring to your attention, an application behavior that may be causing unnecessary resource utilization, particularly during weekends and other periods when users are not actively working.
+
+Problem
+
+EPMS has a Task Reminder
+functionality that continuously sends API requests to check for reminders.
+
+Audit Log analysis indicates
+that some users leave their computers and applications running after work,
+causing these requests to continue during weekends and other non-working
+periods.
+
+Although EPMS has a session
+expiry mechanism for inactive users, the Task Reminder API triggers token
+refreshes, preventing the session from expiring and keeping inactive user
+sessions active.
+
+Potential Impact
+
+1-      Server Impact: Continuous requests from inactive users can increase CPU, memory, and API-processing load on application servers.
+2-      Database Impact: Frequent reminder requests can generate unnecessary database queries, and extra Audit Logs potentially affecting database performance and unnecessary increase in database storage.
+3-      Network Impact: Continuous API calls generates unnecessary network traffic between client, application servers, and the database.
+
+Recommended Solution:
+
+There are several possible
+solutions, and they can be implemented independently or in combination.
+
+Exclude Reminder API from Token Refresh: Do not trigger the refresh-token call when the reminder API receives a 401; allow the token to expire and stop reminder polling.
+Stop Polling on Expired Session: When the reminder API receives a 401 or the session expires, stop background reminder requests until the user actively returns to the application.
+Disable Weekend/Off-Hours Polling: Stop reminder polling during weekends, and non-working hours.
+
+I recommend that we implement
+the reminder-specific 401 handling and then monitor the Audit Logs.
